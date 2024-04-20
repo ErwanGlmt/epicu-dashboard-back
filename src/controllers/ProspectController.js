@@ -1,8 +1,8 @@
 const models = require("../models");
 
-class PlantController {
+class ProspectController {
   static browse = (req, res) => {
-    models.plant
+    models.prospect
       .findAll()
       .then(([rows]) => {
         res.send(rows);
@@ -14,7 +14,7 @@ class PlantController {
   };
 
   static read = (req, res) => {
-    models.plant
+    models.prospect
       .find(req.params.id)
       .then(([rows]) => {
         if (rows[0] == null) {
@@ -30,14 +30,14 @@ class PlantController {
   };
 
   static edit = (req, res) => {
-    const plant = req.body;
+    const prospect = req.body;
 
     // TODO validations (length, format...)
 
-    plant.id = parseInt(req.params.id, 10);
+    prospect.id = parseInt(req.params.id, 10);
 
-    models.plant
-      .update(plant)
+    models.prospect
+      .update(prospect)
       .then(([result]) => {
         if (result.affectedRows === 0) {
           res.sendStatus(404);
@@ -52,14 +52,12 @@ class PlantController {
   };
 
   static add = (req, res) => {
-    const plant = req.body;
+    const prospect = req.body;
 
-    // TODO validations (length, format...)
-
-    models.plant
-      .insert(plant)
+    models.prospect
+      .insert(prospect)
       .then(([result]) => {
-        res.status(201).send({ ...plant, id: result.insertId });
+        res.status(201).send({ ...prospect, id: result.insertId });
       })
       .catch((err) => {
         console.error(err);
@@ -68,7 +66,7 @@ class PlantController {
   };
 
   static delete = (req, res) => {
-    models.plant
+    models.prospect
       .delete(req.params.id)
       .then(() => {
         res.sendStatus(204);
@@ -80,4 +78,4 @@ class PlantController {
   };
 }
 
-module.exports = PlantController;
+module.exports = ProspectController;
