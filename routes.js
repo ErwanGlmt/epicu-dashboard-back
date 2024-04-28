@@ -1,7 +1,7 @@
 const routes = require("express").Router();
 const { ProspectController, ClientController } = require("./src/controllers");
 const { login, verifyToken, updatePassword, logout } = require("./controllers");
-//routes
+
 routes.post("/login", login);
 routes.post("/update", verifyToken, updatePassword);
 routes.get("/logout", logout);

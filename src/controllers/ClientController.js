@@ -32,8 +32,6 @@ class ClientController {
   static edit = (req, res) => {
     const client = req.body;
 
-    // TODO validations (length, format...)
-
     client.id = parseInt(req.params.id, 10);
 
     models.client

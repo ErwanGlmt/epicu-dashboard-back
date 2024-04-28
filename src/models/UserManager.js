@@ -3,7 +3,7 @@ const AbstractManager = require("./AbstractManager");
 class UserManager extends AbstractManager {
   static table = "user";
   constructor(connection) {
-    super(connection, "user"); // Assuming 'user' is the table name
+    super(connection, "user");
     this.connection = connection;
   }
   find(id) {

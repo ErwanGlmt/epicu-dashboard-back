@@ -1,11 +1,10 @@
-const UserManager = require("../models/UserManager");
+const models = require("../models");
 
-class UserController {
+class FileController {
   static browse = (req, res) => {
-    const userManager = new UserManager();
-    userManager
+    models.file
       .findAll()
-      .then((rows) => {
+      .then(([rows]) => {
         res.send(rows);
       })
       .catch((err) => {
@@ -15,11 +14,10 @@ class UserController {
   };
 
   static read = (req, res) => {
-    const userManager = new UserManager();
-    userManager
+    models.file
       .find(req.params.id)
-      .then((rows) => {
-        if (rows.length === 0) {
+      .then(([rows]) => {
+        if (rows[0] == null) {
           res.sendStatus(404);
         } else {
           res.send(rows[0]);
@@ -32,14 +30,13 @@ class UserController {
   };
 
   static edit = (req, res) => {
-    const user = req.body;
+    const file = req.body;
 
-    user.id = parseInt(req.params.id, 10);
+    file.id = parseInt(req.params.id, 10);
 
-    const userManager = new UserManager();
-    userManager
-      .update(user)
-      .then((result) => {
+    models.file
+      .update(file)
+      .then(([result]) => {
         if (result.affectedRows === 0) {
           res.sendStatus(404);
         } else {
@@ -53,13 +50,12 @@ class UserController {
   };
 
   static add = (req, res) => {
-    const user = req.body;
+    const file = req.body;
 
-    const userManager = new UserManager();
-    userManager
-      .insert(user)
-      .then((result) => {
-        res.status(201).send({ ...user, id: result.insertId });
+    models.file
+      .insert(file)
+      .then(([result]) => {
+        res.status(201).send({ ...file, id: result.insertId });
       })
       .catch((err) => {
         console.error(err);
@@ -68,8 +64,7 @@ class UserController {
   };
 
   static delete = (req, res) => {
-    const userManager = new UserManager();
-    userManager
+    models.file
       .delete(req.params.id)
       .then(() => {
         res.sendStatus(204);
@@ -81,4 +76,4 @@ class UserController {
   };
 }
 
-module.exports = UserController;
+module.exports = FileController;

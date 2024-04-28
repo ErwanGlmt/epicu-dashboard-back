@@ -32,8 +32,6 @@ class ProspectController {
   static edit = (req, res) => {
     const prospect = req.body;
 
-    // TODO validations (length, format...)
-
     prospect.id = parseInt(req.params.id, 10);
 
     models.prospect
