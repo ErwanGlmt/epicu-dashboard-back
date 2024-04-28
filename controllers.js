@@ -1,75 +1,85 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const saltRounds = 10; //required by bcrypt
+const UserManager = require("./src/models/UserManager");
+const mysql = require("mysql2/promise");
 
 exports.login = async (req, res) => {
   try {
+    const { DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, privateKey } = process.env;
+
+    const connection = await mysql.createConnection({
+      host: DB_HOST,
+      user: DB_USER,
+      password: DB_PASSWORD,
+      database: DB_NAME,
+      multipleStatements: true,
+    });
     const { name, password } = req.body;
-    const { username, passwordHash, privateKey } = process.env;
-    let token = null;
-    if (name && password) {
-      console.log("NAMEPASS");
-      let match = await bcrypt.compare(password, passwordHash);
-      console.log("Match", match);
-      console.log("Name", name);
-      console.log("Username", username);
-      if (name === username && match) {
-        console.log("MATCH");
-        token = await jwt.sign({ username: username }, privateKey, {
-          expiresIn: "1h",
-        });
-      }
+    const userManager = new UserManager(connection);
+
+    const users = await userManager.findByUsername(name);
+    if (!users) {
+      return res.sendStatus(401);
     }
-    if (token) return res.json({ token: token, username: username });
-    console.log(token);
-    console.log("COUCOU");
-    return res.sendStatus(401);
+
+    const user = users[0];
+    const match = await bcrypt.compare(password, user[0].password_hash);
+    if (match) {
+      const token = jwt.sign({ username: user[0].name }, privateKey, {
+        expiresIn: "1h",
+      });
+      return res.json({ token: token, user: user[0] });
+    } else {
+      return res.sendStatus(401);
+    }
   } catch (err) {
-    console.log(err);
+    console.error(err);
     return res.sendStatus(500);
   }
 };
 
 exports.verifyToken = (req, res, next) => {
-  req.user = { username: null, verified: false };
   const { privateKey } = process.env;
   const bearerHeader = req.headers["authorization"];
   if (typeof bearerHeader !== "undefined") {
     const bearerToken = bearerHeader.split(" ")[1];
     jwt.verify(bearerToken, privateKey, function (err, data) {
-      if (!(err && typeof data === "undefined")) {
-        req.user = { username: data.username, verified: true };
-        next();
+      if (err) {
+        console.error(err);
+        return res.sendStatus(403);
       }
+      req.user = { username: data.username, verified: true };
+      next();
     });
+  } else {
+    return res.sendStatus(403);
   }
-  return res.sendStatus(403);
 };
 
 exports.updatePassword = async (req, res) => {
   try {
-    const { oldPassword, newPassword } = req.body;
-    const { passwordHash } = process.env;
-    if (oldPassword && newPassword) {
-      let match = await bcrypt.compare(oldPassword, passwordHash);
-      console.log("MATCH");
-      if (match) {
-        let hash = await bcrypt.hash(newPassword, saltRounds);
-        return res.sendStatus(200);
-      }
+    const { name, oldPassword, newPassword } = req.body;
+    const userManager = new UserManager();
+
+    const user = await userManager.findByUsername(name);
+    if (!user) {
+      return res.sendStatus(401);
     }
-    return res.sendStatus(401);
+
+    const match = await bcrypt.compare(oldPassword, user.password_hash);
+    if (match) {
+      const hash = await bcrypt.hash(newPassword, saltRounds);
+      await userManager.updatePassword(user.id, hash);
+      return res.sendStatus(200);
+    } else {
+      return res.sendStatus(401);
+    }
   } catch (err) {
-    console.log(err);
+    console.error(err);
     return res.sendStatus(500);
   }
 };
 
 exports.logout = (req, res) => {
-  const bearerHeader = req.headers["authorization"];
-  if (typeof bearerHeader !== "undefined") {
-    const bearerToken = bearerHeader.split(" ")[1];
-    //add bearerToken to blacklist
-  }
   return res.sendStatus(200);
 };

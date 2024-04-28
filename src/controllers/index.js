@@ -7,7 +7,6 @@ const controllers = fs
   .reduce((controllerList, file) => {
     const key = file.slice(0, -".js".length);
 
-    // eslint-disable-next-line global-require, import/no-dynamic-require
     const Controller = require(path.join(__dirname, file));
 
     return { ...controllerList, [key]: Controller };

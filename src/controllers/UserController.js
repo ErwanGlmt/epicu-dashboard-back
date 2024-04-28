@@ -1,10 +1,11 @@
-const models = require("../models");
+const UserManager = require("../models/UserManager");
 
-class CategoryController {
+class UserController {
   static browse = (req, res) => {
-    models.category
+    const userManager = new UserManager();
+    userManager
       .findAll()
-      .then(([rows]) => {
+      .then((rows) => {
         res.send(rows);
       })
       .catch((err) => {
@@ -14,10 +15,11 @@ class CategoryController {
   };
 
   static read = (req, res) => {
-    models.category
+    const userManager = new UserManager();
+    userManager
       .find(req.params.id)
-      .then(([rows]) => {
-        if (rows[0] == null) {
+      .then((rows) => {
+        if (rows.length === 0) {
           res.sendStatus(404);
         } else {
           res.send(rows[0]);
@@ -30,15 +32,14 @@ class CategoryController {
   };
 
   static edit = (req, res) => {
-    const category = req.body;
+    const user = req.body;
 
-    // TODO validations (length, format...)
+    user.id = parseInt(req.params.id, 10);
 
-    category.id = parseInt(req.params.id, 10);
-
-    models.category
-      .update(category)
-      .then(([result]) => {
+    const userManager = new UserManager();
+    userManager
+      .update(user)
+      .then((result) => {
         if (result.affectedRows === 0) {
           res.sendStatus(404);
         } else {
@@ -52,14 +53,13 @@ class CategoryController {
   };
 
   static add = (req, res) => {
-    const category = req.body;
+    const user = req.body;
 
-    // TODO validations (length, format...)
-
-    models.category
-      .insert(category)
-      .then(([result]) => {
-        res.status(201).send({ ...category, id: result.insertId });
+    const userManager = new UserManager();
+    userManager
+      .insert(user)
+      .then((result) => {
+        res.status(201).send({ ...user, id: result.insertId });
       })
       .catch((err) => {
         console.error(err);
@@ -68,7 +68,8 @@ class CategoryController {
   };
 
   static delete = (req, res) => {
-    models.category
+    const userManager = new UserManager();
+    userManager
       .delete(req.params.id)
       .then(() => {
         res.sendStatus(204);
@@ -80,4 +81,4 @@ class CategoryController {
   };
 }
 
-module.exports = CategoryController;
+module.exports = UserController;
